@@ -171,16 +171,18 @@ export const Ribbon = ({ tab, onTab, slide, selected, actions: a }: Props) => {
   const style = textual?.style
   return (
     <div className="esl-ribbon">
-      <div className="esl-tabs" role="tablist">
+      <div className="esl-tabs">
         <div className="esl-quick">
           <Btn command="edit.undo" label="Скасувати (Ctrl+Z)" icon="↶" onClick={a.undo} disabled={!a.canUndo} />
           <Btn command="edit.redo" label="Повторити (Ctrl+Y)" icon="↷" onClick={a.redo} disabled={!a.canRedo} />
         </div>
-        {TABS.map(([id, name]) => (
-          <button type="button" key={id} role="tab" aria-selected={tab === id} data-tab={id} className="esl-tab" onClick={() => onTab(id)}>
-            {name}
-          </button>
-        ))}
+        <div className="esl-tablist" role="tablist" aria-label="Вкладки стрічки">
+          {TABS.map(([id, name]) => (
+            <button type="button" key={id} role="tab" aria-selected={tab === id} data-tab={id} className="esl-tab" onClick={() => onTab(id)}>
+              {name}
+            </button>
+          ))}
+        </div>
       </div>
       <div className="esl-panel" role="tabpanel">
         {tab === "home" && (
