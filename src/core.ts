@@ -7,3 +7,4 @@ export { checkGoals, allMet, describeGoal, nearColor, type Goal, type GoalResult
 export { grade, type Grade } from "./core/grade.ts"
 export { buildDeck, buildSlide, type SlideSpec, type PictureSpec } from "./core/start.ts"
 export { scenarios, scenarioById, nextScenario, TOPIC_NAMES, type Scenario, type ScenarioTopic } from "./scenarios/index.ts"
+export { startDeck, referenceDeck } from "./scenarios/reference.ts"

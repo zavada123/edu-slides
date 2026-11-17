@@ -4,6 +4,7 @@ import { grade } from "../core/grade.ts"
 import { buildDeck } from "../core/start.ts"
 import { scenarios } from "./index.ts"
 import { solutions } from "./solutions.ts"
+import { referenceDeck } from "./reference.ts"
 
 describe("scenarios", () => {
   test("ids are unique and every scenario has a reference solution", () => {
@@ -29,4 +30,19 @@ describe("scenarios", () => {
       if (after.status === "checked") expect(after.results.filter((r) => !r.ok).map((r) => r.text)).toEqual([])
     })
   }
+})
+
+describe("referenceDeck", () => {
+  test("solves every scenario through the public grade", () => {
+    for (const scenario of scenarios) {
+      // Arrange
+      const deck = referenceDeck(scenario)
+
+      // Act
+      const result = grade(scenario, JSON.parse(JSON.stringify(deck)))
+
+      // Assert
+      expect(result.status === "checked" && result.solved, scenario.id).toBe(true)
+    }
+  })
 })
