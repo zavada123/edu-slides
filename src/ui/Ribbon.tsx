@@ -116,16 +116,25 @@ const Menu = ({ command, label, icon, children, disabled }: {
     if (r) setAt({ top: r.bottom + 4, left: Math.max(8, Math.min(r.left, window.innerWidth - 280)) })
     setOpen((o) => !o)
   }
-  // A page may put the trainer inside a transformed or filtered block: `position: fixed` then counts from that block,
-  // not from the window. Measure where the panel landed and move it by the difference.
+  // Place the panel inside the window: under the button, or above it when the button is near the bottom of the
+  // screen. A page may also put the trainer inside a transformed or filtered block, where `position: fixed` counts
+  // from that block rather than the window. Both are fixed the same way: measure where the panel landed and move it.
   useLayoutEffect(() => {
     const p = panel.current
-    if (!open || !p) return
-    // `left`/`top` resolve against the containing block; the window is that block when nothing is transformed.
+    const b = box.current
+    if (!open || !p || !b) return
+    p.style.transform = "none"
+    const btn = b.getBoundingClientRect()
     const r = p.getBoundingClientRect()
-    const cs = getComputedStyle(p)
-    const dx = parseFloat(cs.left) - r.left
-    const dy = parseFloat(cs.top) - r.top
+    const gap = 4
+    const margin = 8
+    const below = btn.bottom + gap
+    const above = btn.top - gap - r.height
+    const fitsBelow = below + r.height <= window.innerHeight - margin
+    const top = fitsBelow || above < margin ? Math.max(margin, Math.min(below, window.innerHeight - margin - r.height)) : above
+    const left = Math.max(margin, Math.min(btn.left, window.innerWidth - margin - r.width))
+    const dx = left - r.left
+    const dy = top - r.top
     if (Number.isFinite(dx) && Number.isFinite(dy) && (Math.abs(dx) > 0.5 || Math.abs(dy) > 0.5)) p.style.transform = `translate(${dx}px, ${dy}px)`
   }, [open, at])
   useEffect(() => {
@@ -134,9 +143,14 @@ const Menu = ({ command, label, icon, children, disabled }: {
       if (box.current && !box.current.contains(e.target as Node)) setOpen(false)
     }
     const esc = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false)
-    // The panel stays where the button was: a scrolled page closes it instead of leaving it behind.
+    // The panel stays where the button was: when a scroll moves the button, the panel closes instead of staying
+    // behind. A scroll event that comes late, after the button already stopped, leaves it open.
+    const start = box.current?.getBoundingClientRect()
     const close = (e: Event) => {
-      if (!(e.target instanceof Node && panel.current?.contains(e.target))) setOpen(false)
+      if (e.target instanceof Node && panel.current?.contains(e.target)) return
+      const now = box.current?.getBoundingClientRect()
+      const moved = !start || !now || Math.abs(now.top - start.top) > 1 || Math.abs(now.left - start.left) > 1
+      if (moved) setOpen(false)
     }
     document.addEventListener("pointerdown", away)
     document.addEventListener("keydown", esc)
