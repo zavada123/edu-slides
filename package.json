@@ -1,0 +1,64 @@
+{
+  "name": "edu-slides",
+  "version": "0.1.0",
+  "description": "Навчальний тренажер комп'ютерних презентацій для 3–7 класу з автоперевіркою",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "build:lib": "vite build -c vite.lib.config.ts && tsc -p tsconfig.lib.json",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zavada123/edu-slides.git"
+  },
+  "files": [
+    "lib"
+  ],
+  "sideEffects": [
+    "**/*.css",
+    "./lib/react.js",
+    "./src/react.ts"
+  ],
+  "exports": {
+    "./core": {
+      "types": "./lib/types/core.d.ts",
+      "import": "./lib/core.js"
+    },
+    "./react": {
+      "types": "./lib/types/react.d.ts",
+      "import": "./lib/react.js"
+    },
+    "./style.css": "./lib/style.css"
+  },
+  "dependencies": {
+    "konva": "10.9.1",
+    "react-konva": "19.3.2"
+  },
+  "devDependencies": {
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.3.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.8",
+    "vitest": "^5.1.0"
+  },
+  "peerDependencies": {
+    "react": ">=19",
+    "react-dom": ">=19"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    },
+    "react-dom": {
+      "optional": true
+    }
+  }
+}
