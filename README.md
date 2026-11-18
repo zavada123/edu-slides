@@ -74,4 +74,6 @@ npm run build      # type check and build the demo into dist/
 npm run build:lib  # build the package into lib/
 ```
 
-The pictures in `src/ui/pictures` are original drawings made for this package (MIT).
+## License
+
+[MIT](LICENSE), together with the pictures in `src/ui/pictures`: original drawings made for this package. The slides are drawn with [Konva](https://konvajs.org) and [react-konva](https://github.com/konvajs/react-konva) (MIT), installed as dependencies. This project is not affiliated with Microsoft or any other maker of presentation software.
