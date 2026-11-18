@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useRef, useState } from "react"
+import { type ReactNode, useEffect, useLayoutEffect, useRef, useState } from "react"
 import { LIBRARY } from "../core/library.ts"
 import {
   type Align,
@@ -109,23 +109,58 @@ const Menu = ({ command, label, icon, children, disabled }: {
   const [open, setOpen] = useState(false)
   const [at, setAt] = useState({ top: 0, left: 0 })
   const box = useRef<HTMLDivElement>(null)
+  const panel = useRef<HTMLDivElement>(null)
   // The ribbon scrolls sideways, which would cut a panel inside it: the panel is placed over the page instead.
   const toggle = () => {
     const r = box.current?.getBoundingClientRect()
     if (r) setAt({ top: r.bottom + 4, left: Math.max(8, Math.min(r.left, window.innerWidth - 280)) })
     setOpen((o) => !o)
   }
+  // Place the panel inside the window: under the button, or above it when the button is near the bottom of the
+  // screen. A page may also put the trainer inside a transformed or filtered block, where `position: fixed` counts
+  // from that block rather than the window. Both are fixed the same way: measure where the panel landed and move it.
+  useLayoutEffect(() => {
+    const p = panel.current
+    const b = box.current
+    if (!open || !p || !b) return
+    p.style.transform = "none"
+    const btn = b.getBoundingClientRect()
+    const r = p.getBoundingClientRect()
+    const gap = 4
+    const margin = 8
+    const below = btn.bottom + gap
+    const above = btn.top - gap - r.height
+    const fitsBelow = below + r.height <= window.innerHeight - margin
+    const top = fitsBelow || above < margin ? Math.max(margin, Math.min(below, window.innerHeight - margin - r.height)) : above
+    const left = Math.max(margin, Math.min(btn.left, window.innerWidth - margin - r.width))
+    const dx = left - r.left
+    const dy = top - r.top
+    if (Number.isFinite(dx) && Number.isFinite(dy) && (Math.abs(dx) > 0.5 || Math.abs(dy) > 0.5)) p.style.transform = `translate(${dx}px, ${dy}px)`
+  }, [open, at])
   useEffect(() => {
     if (!open) return undefined
     const away = (e: PointerEvent) => {
       if (box.current && !box.current.contains(e.target as Node)) setOpen(false)
     }
     const esc = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false)
+    // The panel stays where the button was: when a scroll moves the button, the panel closes instead of staying
+    // behind. A scroll event that comes late, after the button already stopped, leaves it open.
+    const start = box.current?.getBoundingClientRect()
+    const close = (e: Event) => {
+      if (e.target instanceof Node && panel.current?.contains(e.target)) return
+      const now = box.current?.getBoundingClientRect()
+      const moved = !start || !now || Math.abs(now.top - start.top) > 1 || Math.abs(now.left - start.left) > 1
+      if (moved) setOpen(false)
+    }
     document.addEventListener("pointerdown", away)
     document.addEventListener("keydown", esc)
+    window.addEventListener("scroll", close, true)
+    window.addEventListener("resize", close)
     return () => {
       document.removeEventListener("pointerdown", away)
       document.removeEventListener("keydown", esc)
+      window.removeEventListener("scroll", close, true)
+      window.removeEventListener("resize", close)
     }
   }, [open])
   return (
@@ -134,7 +169,7 @@ const Menu = ({ command, label, icon, children, disabled }: {
         <span className="esl-btn-icon" aria-hidden="true">{icon}</span>
         <span className="esl-btn-label">{label} ▾</span>
       </button>
-      {open && <div className="esl-menu-panel" role="menu" style={at}>{children(() => setOpen(false))}</div>}
+      {open && <div ref={panel} className="esl-menu-panel" role="menu" style={at}>{children(() => setOpen(false))}</div>}
     </div>
   )
 }
